@@ -83,6 +83,51 @@ video {
   letter-spacing: 0.05em;
 }
 
+.fiche-produit {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(127, 127, 127, 0.12);
+  text-align: left;
+}
+
+.fiche-produit[hidden],
+.produit-photo[hidden] {
+  display: none;
+}
+
+.produit-photo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.fiche-produit h2 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+.produit-marque {
+  margin: 0 0 8px;
+  color: var(--gris);
+}
+
+.source {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--gris);
+}
+
+.source a {
+  color: inherit;
+}
+
 button {
   display: block;
   width: 100%;
