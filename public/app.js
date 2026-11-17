@@ -13,6 +13,10 @@ const resultat = document.getElementById("resultat");
 const codeEan = document.getElementById("code-ean");
 const boutonScanner = document.getElementById("bouton-scanner");
 const boutonAnnuler = document.getElementById("bouton-annuler");
+const ficheProduit = document.getElementById("fiche-produit");
+const produitPhoto = document.getElementById("produit-photo");
+const produitNom = document.getElementById("produit-nom");
+const produitMarque = document.getElementById("produit-marque");
 
 // Les formats de codes-barres des produits de supermarché.
 // EAN-13 est le plus courant en Suisse ; EAN-8 pour les petits emballages ; UPC pour les produits américains.
@@ -30,6 +34,7 @@ async function demarrerScan() {
   }
 
   resultat.hidden = true;
+  viderFiche();
   afficherMessage("Ouverture de la caméra…");
 
   try {
@@ -84,11 +89,71 @@ function codeTrouve(code) {
   arreterCamera();
   codeEan.textContent = code;
   resultat.hidden = false;
-  afficherMessage("Code-barres lu !");
   boutonScanner.textContent = "Scanner un autre produit";
 
   // Petite vibration de confirmation (marche sur Android, ignorée sur iPhone).
   if (navigator.vibrate) navigator.vibrate(100);
+
+  chercherProduit(code);
+}
+
+// Demande à Open Food Facts le nom, la marque et la photo du produit.
+// On ne demande que les champs utiles ("fields=") : la réponse est plus petite, donc plus rapide.
+async function chercherProduit(code) {
+  afficherMessage("Recherche du produit…");
+
+  const adresse =
+    "https://world.openfoodfacts.org/api/v2/product/" + encodeURIComponent(code) +
+    ".json?fields=product_name,product_name_fr,brands,image_front_url";
+
+  let reponse;
+  try {
+    reponse = await fetch(adresse);
+  } catch (erreur) {
+    // fetch échoue seulement si le réseau ne répond pas (pas de connexion, par exemple).
+    afficherMessage("Pas de connexion : impossible de chercher le produit.");
+    return;
+  }
+
+  // Attention : pour un produit inconnu, Open Food Facts répond avec une erreur 404,
+  // mais le contenu reste lisible et contient "status": 0. On lit donc toujours la réponse.
+  let donnees = null;
+  try {
+    donnees = await reponse.json();
+  } catch (erreur) {
+    // Réponse illisible : on la traite comme un produit introuvable.
+  }
+
+  if (!donnees || donnees.status !== 1) {
+    afficherMessage("Produit inconnu d'Open Food Facts. Le code est bien lu, mais ce produit n'est pas encore dans la base.");
+    return;
+  }
+
+  afficherProduit(donnees.product);
+}
+
+function afficherProduit(produit) {
+  // On préfère le nom en français ; sinon, le nom général.
+  produitNom.textContent = produit.product_name_fr || produit.product_name || "Nom inconnu";
+  produitMarque.textContent = produit.brands || "Marque inconnue";
+
+  if (produit.image_front_url) {
+    produitPhoto.src = produit.image_front_url;
+    produitPhoto.alt = "Photo du produit";
+    produitPhoto.hidden = false;
+  }
+
+  ficheProduit.hidden = false;
+  afficherMessage("Produit trouvé !");
+}
+
+// Efface la fiche du produit précédent avant un nouveau scan.
+function viderFiche() {
+  ficheProduit.hidden = true;
+  produitPhoto.hidden = true;
+  produitPhoto.removeAttribute("src");
+  produitNom.textContent = "";
+  produitMarque.textContent = "";
 }
 
 function arreterCamera() {

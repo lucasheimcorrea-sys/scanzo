@@ -29,6 +29,16 @@
       Code EAN : <strong id="code-ean"></strong>
     </p>
 
+    <!-- La fiche produit, remplie avec les données d'Open Food Facts. -->
+    <article id="fiche-produit" class="fiche-produit" hidden>
+      <img id="produit-photo" class="produit-photo" alt="" hidden>
+      <div>
+        <h2 id="produit-nom"></h2>
+        <p id="produit-marque" class="produit-marque"></p>
+        <p class="source">Données : <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a></p>
+      </div>
+    </article>
+
     <button id="bouton-scanner" type="button">Scanner</button>
     <button id="bouton-annuler" type="button" class="secondaire" hidden>Annuler</button>
   </main>
