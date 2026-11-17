@@ -1,0 +1,4 @@
+# Netlify ne met en ligne que le dossier public/ (pas CLAUDE.md, README, etc.).
+# Pas de commande de build : ce sont des fichiers HTML/CSS/JS servis tels quels.
+[build]
+  publish = "public"
