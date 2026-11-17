@@ -28,14 +28,18 @@ Lucas, 19 ans, étudiant en économie (UniNE), il apprend le développement avec
 - Backend : **Supabase** (pas encore créé, étape 3).
 - Source des prix : hybride (prix saisis dans Scanzo + prix Open Prices quand il y en a).
 - Prix enregistrés **par filiale**. Repli à l'affichage : prix Scanzo de la filiale → sinon prix Scanzo d'une autre filiale de la même enseigne → sinon Open Prices. L'app affiche toujours l'origine du prix (filiale, âge).
+- Scan : API standard `BarcodeDetector` + polyfill `barcode-detector` (ZXing en WebAssembly, version figée), car Safari iPhone n'a pas l'API.
+- Produit identifié via l'API **Open Food Facts v2** (sans clé).
+- Site en ligne : https://testescanzo.netlify.app (projet Netlify `testescanzo`).
 
 Le reste (bibliothèque de scan, framework, etc.) n'est **pas décidé** : propose, explique, et laisse Lucas choisir avant de partir dessus.
 
-## Étape en cours : 2 — prototype « scan → produit »
-Pas de serveur à ce stade.
-- [ ] PWA minimale qui ouvre la caméra et lit un code-barres
-- [ ] Afficher nom, marque et photo depuis Open Food Facts
-- [ ] Message clair si le produit est inconnu
+## Étape en cours : 3 — monter le backend (Supabase)
+L'étape 2 (scan → fiche produit) est terminée depuis le 18.11.2026.
+- [ ] Compte Supabase gratuit + connecteur
+- [ ] Tables : produits, magasins (une ligne par filiale), prix, groupes d'équivalents
+- [ ] Règles de sécurité (Row Level Security) **avant** de brancher l'app
+- [ ] Connexion des utilisateurs
 
 ## Façon de travailler
 - Une fonctionnalité = une **branche** (`feature/scan-camera`, etc.), puis une pull request vers `main`. Netlify crée une adresse de test pour chaque PR : Lucas teste sur son téléphone avant de fusionner.
