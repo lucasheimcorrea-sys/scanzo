@@ -1,0 +1,15 @@
+# Secrets : ne jamais les envoyer sur GitHub
+.env
+.env.*
+!.env.example
+
+# Dépendances et builds
+node_modules/
+dist/
+build/
+.netlify/
+
+# Système et éditeurs
+.DS_Store
+.vscode/
+*.log
