@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scanzo</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Polyfill BarcodeDetector : ajoute la fonction aux navigateurs qui ne l'ont pas (Safari sur iPhone).
+       Si le navigateur l'a déjà (Chrome Android), il ne fait rien.
+       Version figée (3.2.3) pour que rien ne change sans qu'on le décide. -->
+  <script src="https://cdn.jsdelivr.net/npm/barcode-detector@3.2.3/dist/iife/polyfill.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Scanzo</h1>
+
+    <!-- La vidéo de la caméra. "playsinline" et "muted" sont obligatoires sur iPhone,
+         sinon la vidéo s'ouvre en plein écran ou ne démarre pas. -->
+    <div id="zone-camera" class="zone-camera" hidden>
+      <video id="video" playsinline muted autoplay></video>
+      <div class="viseur"></div>
+    </div>
+
+    <p id="message" class="message">Appuie sur « Scanner » et vise le code-barres d'un produit.</p>
+
+    <p id="resultat" class="resultat" hidden>
+      Code EAN : <strong id="code-ean"></strong>
+    </p>
+
+    <button id="bouton-scanner" type="button">Scanner</button>
+    <button id="bouton-annuler" type="button" class="secondaire" hidden>Annuler</button>
+  </main>
+</body>
+</html>
