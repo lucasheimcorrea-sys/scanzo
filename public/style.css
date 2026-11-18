@@ -321,3 +321,37 @@ button:disabled {
 .section-prix .sous-titre {
   margin-top: 24px;
 }
+
+/* --- Étiquettes (âge du prix, en action, signalé faux) --- */
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* L'âge : toujours affiché, bien lisible. */
+.badge-age {
+  background: rgba(127, 127, 127, 0.22);
+  color: var(--texte);
+}
+
+.badge-action {
+  background: #f2c94c;
+  color: #3a2c00;
+}
+
+.badge-alerte {
+  background: #e5484d;
+  color: #fff;
+}
