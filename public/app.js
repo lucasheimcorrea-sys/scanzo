@@ -1,4 +1,5 @@
-// Scanzo — étape 2 : ouvrir la caméra et lire un code-barres EAN.
+// Scanzo — ouvrir la caméra, lire un code-barres EAN et afficher le produit.
+// (Les prix sont gérés dans prix.js, la connexion dans connexion.js.)
 //
 // Le principe :
 // 1. On demande la caméra arrière au navigateur (getUserMedia).
@@ -17,6 +18,7 @@ const ficheProduit = document.getElementById("fiche-produit");
 const produitPhoto = document.getElementById("produit-photo");
 const produitNom = document.getElementById("produit-nom");
 const produitMarque = document.getElementById("produit-marque");
+const produitSource = document.getElementById("produit-source");
 
 // Les formats de codes-barres des produits de supermarché.
 // EAN-13 est le plus courant en Suisse ; EAN-8 pour les petits emballages ; UPC pour les produits américains.
@@ -97,14 +99,15 @@ function codeTrouve(code) {
   chercherProduit(code);
 }
 
-// Demande à Open Food Facts le nom, la marque et la photo du produit.
+// Demande à Open Food Facts le nom, la marque, la quantité et la photo du produit.
+// S'il n'y est pas, on regarde si quelqu'un l'a déjà ajouté dans Scanzo.
 // On ne demande que les champs utiles ("fields=") : la réponse est plus petite, donc plus rapide.
 async function chercherProduit(code) {
   afficherMessage("Recherche du produit…");
 
   const adresse =
     "https://world.openfoodfacts.org/api/v2/product/" + encodeURIComponent(code) +
-    ".json?fields=product_name,product_name_fr,brands,image_front_url";
+    ".json?fields=product_name,product_name_fr,brands,quantity,image_front_url";
 
   let reponse;
   try {
@@ -125,17 +128,51 @@ async function chercherProduit(code) {
   }
 
   if (!donnees || donnees.status !== 1) {
-    afficherMessage("Produit inconnu d'Open Food Facts. Le code est bien lu, mais ce produit n'est pas encore dans la base.");
+    await chercherDansScanzo(code);
     return;
   }
 
-  afficherProduit(donnees.product);
+  const produit = donnees.product;
+  afficherProduit(produit);
+
+  // On passe à la section des prix les infos à enregistrer dans la table « produits ».
+  ouvrirSectionPrix(code, {
+    nom: produit.product_name_fr || produit.product_name || "Nom inconnu",
+    marque: produit.brands || null,
+    quantite: produit.quantity || null,
+  });
+}
+
+// Produit absent d'Open Food Facts : peut-être qu'un utilisateur de Scanzo l'a déjà ajouté.
+async function chercherDansScanzo(code) {
+  const { data } = await sb.from("produits").select("ean, nom, marque, quantite").eq("ean", code).maybeSingle();
+
+  if (data) {
+    produitNom.textContent = data.nom;
+    produitMarque.textContent = data.marque || "Marque inconnue";
+    produitSource.textContent = "Produit ajouté par un utilisateur de Scanzo";
+    ficheProduit.hidden = false;
+    afficherMessage("Produit trouvé dans Scanzo.");
+    ouvrirSectionPrix(code, { nom: data.nom, marque: data.marque, quantite: data.quantite });
+    return;
+  }
+
+  afficherMessage("Produit inconnu d'Open Food Facts et de Scanzo. Connecté, tu peux l'ajouter avec un prix ci-dessous.");
+  ouvrirSectionPrix(code, null);
 }
 
 function afficherProduit(produit) {
   // On préfère le nom en français ; sinon, le nom général.
   produitNom.textContent = produit.product_name_fr || produit.product_name || "Nom inconnu";
   produitMarque.textContent = produit.brands || "Marque inconnue";
+  // Lien obligatoire par la licence d'Open Food Facts (ODbL) : on cite la source.
+  produitSource.textContent = "Données : ";
+  const lien = document.createElement("a");
+  lien.href = "https://world.openfoodfacts.org";
+  lien.target = "_blank";
+  lien.rel = "noopener";
+  lien.textContent = "Open Food Facts";
+  produitSource.appendChild(lien);
 
   if (produit.image_front_url) {
     produitPhoto.src = produit.image_front_url;
@@ -154,6 +191,8 @@ function viderFiche() {
   produitPhoto.removeAttribute("src");
   produitNom.textContent = "";
   produitMarque.textContent = "";
+  produitSource.textContent = "";
+  fermerSectionPrix();
 }
 
 function arreterCamera() {

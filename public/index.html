@@ -18,6 +18,7 @@
   <!-- Nos fichiers, dans l'ordre : "defer" les lance après le chargement de la page, en gardant cet ordre. -->
   <script src="supabase.js" defer></script>
   <script src="connexion.js" defer></script>
+  <script src="prix.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -61,9 +62,53 @@
       <div>
         <h2 id="produit-nom"></h2>
         <p id="produit-marque" class="produit-marque"></p>
-        <p class="source">Données : <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a></p>
+        <p id="produit-source" class="source"></p>
       </div>
     </article>
+
+    <!-- Les prix du produit scanné : liste + formulaire d'ajout (rempli par prix.js). -->
+    <section id="section-prix" class="section-prix" hidden>
+      <h2>Prix relevés dans Scanzo</h2>
+      <p id="message-liste" class="message"></p>
+      <ul id="liste-prix" class="liste-prix"></ul>
+
+      <p id="prix-pas-connecte" class="message">Connecte-toi (en haut) pour ajouter un prix.</p>
+
+      <form id="form-prix" class="form-prix" hidden>
+        <h3 id="titre-form-prix">Ajouter un prix</h3>
+
+        <!-- Visible seulement si le produit n'est connu ni d'Open Food Facts ni de Scanzo. -->
+        <label id="bloc-nom-produit" hidden>
+          Nom du produit (il est inconnu, tu l'ajoutes à Scanzo)
+          <input id="champ-nom-produit" type="text" maxlength="200" autocomplete="off">
+        </label>
+
+        <label>
+          Filiale
+          <select id="champ-filiale" required></select>
+        </label>
+
+        <!-- type="text" + inputmode="decimal" : clavier chiffres sur iPhone, et on accepte 2,40 comme 2.40. -->
+        <label>
+          Prix en CHF
+          <input id="champ-prix" type="text" inputmode="decimal" placeholder="2.40" autocomplete="off" required>
+        </label>
+
+        <label>
+          Date du relevé
+          <input id="champ-date" type="date" required>
+        </label>
+
+        <label class="case">
+          <input id="champ-action" type="checkbox">
+          En action (prix réduit temporairement)
+        </label>
+
+        <button id="bouton-enregistrer-prix" type="submit">Ajouter ce prix</button>
+        <button id="bouton-annuler-correction" type="button" class="secondaire" hidden>Annuler la correction</button>
+        <p id="message-prix" class="message" aria-live="polite"></p>
+      </form>
+    </section>
 
     <button id="bouton-scanner" type="button">Scanner</button>
     <button id="bouton-annuler" type="button" class="secondaire" hidden>Annuler</button>
