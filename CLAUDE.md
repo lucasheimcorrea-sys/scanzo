@@ -23,19 +23,23 @@ Lucas, 19 ans, étudiant en économie (UniNE), il apprend le développement avec
   - `02_Recherche/sources-de-donnees.md` : Open Food Facts, Open Prices
   Lis-les quand tu as besoin du contexte. Ne les modifie pas : leur mise à jour se fait dans le projet Claude « Scanzo ».
 
-## Décisions déjà prises (17.11.2026)
-- Front : **PWA**, hébergée sur **Netlify**, déployée automatiquement depuis ce repo GitHub.
-- Backend : **Supabase** (pas encore créé, étape 3).
+## Décisions déjà prises
+- Front : **PWA HTML/CSS/JS sans build**, hébergée sur **Netlify** (site `testescanzo`, dossier `public/`), déployée automatiquement depuis ce repo GitHub.
+- Scan : API standard `BarcodeDetector` + polyfill `barcode-detector` (ZXing en WebAssembly, version figée), car Safari iPhone n'a pas l'API.
+- Produits : **Open Food Facts** (API v2, sans clé). Un connecté peut ajouter un produit inconnu.
+- Backend : **Supabase** (projet `scanzo`, eu-west-1). Tables produits, magasins (1 ligne par filiale), prix, groupes d'équivalents, signalements. RLS : tout le monde lit, les connectés ajoutent prix et produits, chacun corrige/supprime seulement ses prix. Historique SQL dans `supabase/migrations/`.
+- Connexion : **email avec lien magique** (Supabase Auth).
 - Source des prix : hybride (prix saisis dans Scanzo + prix Open Prices quand il y en a).
-- Prix enregistrés **par filiale**. Repli à l'affichage : prix Scanzo de la filiale → sinon prix Scanzo d'une autre filiale de la même enseigne → sinon Open Prices. L'app affiche toujours l'origine du prix (filiale, âge).
+- Prix enregistrés **par filiale** (48 filiales du canton de Neuchâtel, tirées d'OpenStreetMap avec `outils/filiales-osm.py`). Repli à l'affichage (`public/repli.js`) : prix Scanzo de la filiale → sinon prix Scanzo d'une autre filiale de la même enseigne → sinon Open Prices. L'app affiche toujours l'origine du prix (filiale, âge).
+- Bouton « prix faux » = table `signalements` (un signalement par personne et par prix).
+- **Équivalents (étape 5) repoussés à la toute fin**, voire abandonnés (18.11.2026) : ne pas les coder sans demande de Lucas.
 
-Le reste (bibliothèque de scan, framework, etc.) n'est **pas décidé** : propose, explique, et laisse Lucas choisir avant de partir dessus.
+Ce qui n'est pas listé ici n'est **pas décidé** : propose, explique, et laisse Lucas choisir avant de partir dessus.
 
-## Étape en cours : 2 — prototype « scan → produit »
-Pas de serveur à ce stade.
-- [ ] PWA minimale qui ouvre la caméra et lit un code-barres
-- [ ] Afficher nom, marque et photo depuis Open Food Facts
-- [ ] Message clair si le produit est inconnu
+## Où on en est (18.11.2026)
+Étapes 0 à 3 et 7 (identité visuelle) faites ; 4 et 6 presque finies. En ligne sur https://testescanzo.netlify.app.
+- Reste à faire : saisie de vrais prix par Lucas, test avec un ami (il faudra un service d'email SMTP : sans lui, Supabase n'envoie le lien qu'aux membres de l'équipe du projet), photo de l'étiquette (option).
+- Questions encore ouvertes (âge max d'un prix, ordre Open Prices, prix signalé faux à cacher, service worker…) : `06_Suivi/questions-ouvertes.md` dans le dossier iCloud. Ne pas les trancher seul.
 
 ## Identité visuelle (piste B « Sticker », 18.11.2026)
 Détail complet : `01_Concept/nom-et-identite.md` dans le dossier iCloud.
@@ -47,7 +51,7 @@ Détail complet : `01_Concept/nom-et-identite.md` dans le dossier iCloud.
 
 ## Façon de travailler
 - Une fonctionnalité = une **branche** (`feature/scan-camera`, etc.), puis une pull request vers `main`. Netlify crée une adresse de test pour chaque PR.
-- **PR en autonomie** (accord de Lucas, 18.11.2026) : Claude ouvre et fusionne les PR sans demander, après avoir vérifié lui-même (aperçu local au format iPhone, `node --test tests/`, déploiement Netlify de la PR réussi). Ensuite, il donne à Lucas le lien et ce qu'il faut tester sur iPhone.
+- **PR en autonomie** (accord de Lucas, 18.11.2026) : Claude ouvre et fusionne les PR sans demander, après avoir vérifié lui-même (aperçu local au format iPhone, `node --test tests/*.test.js`, déploiement Netlify de la PR réussi). Ensuite, il donne à Lucas le lien et ce qu'il faut tester sur iPhone.
 - Messages de commit courts, en français, qui disent ce qui change.
 - Garde le code simple et lisible pour un débutant. Pas de dépendance ajoutée sans dire pourquoi.
 - Noms de fichiers : minuscules-avec-tirets, sans accent ni espace.
