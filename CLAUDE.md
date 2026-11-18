@@ -46,7 +46,8 @@ Détail complet : `01_Concept/nom-et-identite.md` dans le dossier iCloud.
 - Icônes de l'app dans `public/icones/` ; pour les refaire : `outils/generer-icones.html`.
 
 ## Façon de travailler
-- Une fonctionnalité = une **branche** (`feature/scan-camera`, etc.), puis une pull request vers `main`. Netlify crée une adresse de test pour chaque PR : Lucas teste sur son téléphone avant de fusionner.
+- Une fonctionnalité = une **branche** (`feature/scan-camera`, etc.), puis une pull request vers `main`. Netlify crée une adresse de test pour chaque PR.
+- **PR en autonomie** (accord de Lucas, 18.11.2026) : Claude ouvre et fusionne les PR sans demander, après avoir vérifié lui-même (aperçu local au format iPhone, `node --test tests/`, déploiement Netlify de la PR réussi). Ensuite, il donne à Lucas le lien et ce qu'il faut tester sur iPhone.
 - Messages de commit courts, en français, qui disent ce qui change.
 - Garde le code simple et lisible pour un débutant. Pas de dépendance ajoutée sans dire pourquoi.
 - Noms de fichiers : minuscules-avec-tirets, sans accent ni espace.
