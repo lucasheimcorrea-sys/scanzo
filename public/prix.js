@@ -225,9 +225,72 @@ async function chargerPrix() {
     return;
   }
 
-  afficherComparaison(data, prixOpen);
+  // Les signalements « prix faux » de ces prix (null si la table n'existe pas encore).
+  const signalements = await chargerSignalements(data.map((l) => l.id));
+  if (ean !== eanActuel) return;
+
+  afficherComparaison(data, prixOpen, signalements);
   messageListe.textContent = data.length === 0 ? "Aucun prix relevé dans Scanzo pour ce produit." : "";
-  afficherListePrix(data);
+  afficherListePrix(data, signalements);
+}
+
+// --- « Prix faux » : la table signalements ---
+
+// Renvoie { idDuPrix: [utilisateurs qui l'ont signalé] }, ou null si les signalements sont indisponibles
+// (par exemple tant que la migration n'est pas appliquée) : l'app marche alors sans le bouton.
+async function chargerSignalements(idsPrix) {
+  const parPrix = {};
+  if (idsPrix.length === 0) return parPrix;
+
+  const { data, error } = await sb.from("signalements").select("prix_id, utilisateur").in("prix_id", idsPrix);
+  if (error) {
+    console.warn("Signalements indisponibles :", error.message);
+    return null;
+  }
+  for (const s of data) {
+    if (!parPrix[s.prix_id]) parPrix[s.prix_id] = [];
+    parPrix[s.prix_id].push(s.utilisateur);
+  }
+  return parPrix;
+}
+
+async function signalerPrix(ligne) {
+  const ok = confirm("Signaler comme faux le prix de " + formaterPrix(ligne.prix) + " CHF chez " + nomFiliale(ligne.magasins) + " ?");
+  if (!ok) return;
+  // La règle RLS vérifie que « utilisateur » est bien nous : impossible de signaler au nom d'un autre.
+  const { error } = await sb.from("signalements").insert({ prix_id: ligne.id, utilisateur: utilisateurActuel.id });
+  if (error) messageListe.textContent = "Signalement impossible (" + error.message + ").";
+  chargerPrix();
+}
+
+async function retirerSignalement(ligne) {
+  const { error } = await sb
+    .from("signalements")
+    .delete()
+    .eq("prix_id", ligne.id)
+    .eq("utilisateur", utilisateurActuel.id);
+  if (error) messageListe.textContent = "Impossible de retirer le signalement (" + error.message + ").";
+  chargerPrix();
+}
+
+// Une petite étiquette colorée (« il y a 3 jours », « en action », « signalé faux »).
+function creerBadge(texte, classe) {
+  const badge = document.createElement("span");
+  badge.className = "badge " + classe;
+  badge.textContent = texte;
+  return badge;
+}
+
+// Les étiquettes d'un prix : âge (toujours), action, signalements.
+function creerBadges(date, enAction, nbSignalements, maintenant) {
+  const zone = document.createElement("div");
+  zone.className = "badges";
+  zone.appendChild(creerBadge("relevé " + texteAge(date, maintenant), "badge-age"));
+  if (enAction) zone.appendChild(creerBadge("en action", "badge-action"));
+  if (nbSignalements > 0) {
+    zone.appendChild(creerBadge("signalé faux " + nbSignalements + "×", "badge-alerte"));
+  }
+  return zone;
 }
 
 // --- Open Prices : prix publics (lecture seule, sans compte) ---
@@ -261,13 +324,14 @@ async function chargerOpenPrices(ean) {
 
 // --- La comparaison : un prix par enseigne, choisi par la logique de repli (repli.js) ---
 
-function afficherComparaison(lignesScanzo, prixOpen) {
+function afficherComparaison(lignesScanzo, prixOpen, signalements) {
   listeComparaison.textContent = "";
   const maintenant = new Date();
   const mesFiliales = lireMesFiliales();
 
   // On met les prix Scanzo au même format que ceux d'Open Prices.
   const prixScanzo = lignesScanzo.map((l) => ({
+    id: l.id,
     prix: l.prix,
     date: l.date_releve,
     enAction: l.en_action,
@@ -289,17 +353,21 @@ function afficherComparaison(lignesScanzo, prixOpen) {
     const origine = document.createElement("div");
     origine.className = "details-prix";
 
+    const gauche = document.createElement("div");
+    gauche.append(nom, origine);
+
     if (choix) {
       const p = choix.prix;
       montant.textContent = formaterPrix(p.prix) + " CHF";
-      origine.textContent = texteOrigine(choix) + " · relevé " + texteAge(p.date, maintenant) + (p.enAction ? " · en action" : "");
+      origine.textContent = texteOrigine(choix);
+      // Les prix Open Prices n'ont pas d'id Scanzo, donc pas de signalement chez nous.
+      const nbSignalements = signalements && p.id && signalements[p.id] ? signalements[p.id].length : 0;
+      gauche.appendChild(creerBadges(p.date, p.enAction, nbSignalements, maintenant));
     } else {
       montant.textContent = "—";
       origine.textContent = "pas encore de prix";
     }
 
-    const gauche = document.createElement("div");
-    gauche.append(nom, origine);
     element.append(gauche, montant);
     listeComparaison.appendChild(element);
   }
@@ -317,8 +385,9 @@ function texteOrigine(choix) {
   }
 }
 
-function afficherListePrix(lignes) {
+function afficherListePrix(lignes, signalements) {
   listePrix.textContent = "";
+  const maintenant = new Date();
 
   for (const ligne of lignes) {
     const element = document.createElement("li");
@@ -332,17 +401,34 @@ function afficherListePrix(lignes) {
     texte.appendChild(montant);
     texte.append(" · " + nomFiliale(ligne.magasins));
 
+    const signaleurs = signalements && signalements[ligne.id] ? signalements[ligne.id] : [];
+    texte.appendChild(creerBadges(ligne.date_releve, ligne.en_action, signaleurs.length, maintenant));
+
     const details = document.createElement("div");
     details.className = "details-prix";
-    details.textContent = "relevé le " + dateSuisse(ligne.date_releve) + (ligne.en_action ? " · en action" : "");
+    details.textContent = "le " + dateSuisse(ligne.date_releve);
     texte.appendChild(details);
     element.appendChild(texte);
 
-    // Ses propres prix : on peut les corriger ou les supprimer.
-    if (utilisateurActuel && ligne.utilisateur === utilisateurActuel.id) {
-      const actions = document.createElement("div");
-      actions.className = "actions-prix";
+    const actions = document.createElement("div");
+    actions.className = "actions-prix";
+    const estAMoi = utilisateurActuel && ligne.utilisateur === utilisateurActuel.id;
 
+    // Le prix de quelqu'un d'autre : bouton « Prix faux ? » (ou retirer son signalement).
+    // Seulement si on est connecté et que les signalements sont disponibles.
+    if (utilisateurActuel && !estAMoi && signalements) {
+      const dejaSignale = signaleurs.includes(utilisateurActuel.id);
+      const boutonSignaler = document.createElement("button");
+      boutonSignaler.type = "button";
+      boutonSignaler.className = "petit secondaire";
+      boutonSignaler.textContent = dejaSignale ? "Retirer mon signalement" : "Prix faux ?";
+      boutonSignaler.addEventListener("click", () => (dejaSignale ? retirerSignalement(ligne) : signalerPrix(ligne)));
+      actions.appendChild(boutonSignaler);
+      element.appendChild(actions);
+    }
+
+    // Ses propres prix : on peut les corriger ou les supprimer (pas besoin de les « signaler »).
+    if (estAMoi) {
       const boutonCorriger = document.createElement("button");
       boutonCorriger.type = "button";
       boutonCorriger.className = "petit secondaire";
