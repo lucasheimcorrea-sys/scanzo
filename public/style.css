@@ -151,3 +151,69 @@ button.secondaire {
   color: var(--texte);
   border: 2px solid var(--gris);
 }
+
+/* --- Compte (connexion par lien magique) --- */
+
+.compte {
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(127, 127, 127, 0.12);
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.compte [hidden] {
+  display: none;
+}
+
+.form-connexion label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Une ligne qui met côte à côte un texte/champ et un bouton, et passe à la ligne si c'est trop étroit. */
+.ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ligne > input {
+  flex: 1 1 180px;
+}
+
+input,
+select {
+  min-width: 0;
+  padding: 10px 12px;
+  /* 16px minimum : en dessous, Safari sur iPhone zoome tout seul sur le champ. */
+  font-size: 16px;
+  border: 2px solid var(--gris);
+  border-radius: 10px;
+  background: var(--fond);
+  color: var(--texte);
+}
+
+button.petit {
+  display: inline-block;
+  width: auto;
+  margin-top: 0;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
+.message-compte {
+  margin: 8px 0 0;
+  color: var(--gris);
+}
+
+.message-compte:empty {
+  display: none;
+}
