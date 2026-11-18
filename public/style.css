@@ -297,3 +297,27 @@ button:disabled {
   width: 22px;
   height: 22px;
 }
+
+/* --- Comparaison par enseigne --- */
+
+.ligne-comparaison {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.ligne-comparaison strong {
+  white-space: nowrap;
+  font-size: 1.1rem;
+}
+
+.enseigne {
+  font-weight: 600;
+}
+
+.section-prix .sous-titre {
+  margin-top: 24px;
+}

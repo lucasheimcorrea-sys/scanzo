@@ -18,6 +18,7 @@
   <!-- Nos fichiers, dans l'ordre : "defer" les lance après le chargement de la page, en gardant cet ordre. -->
   <script src="supabase.js" defer></script>
   <script src="connexion.js" defer></script>
+  <script src="repli.js" defer></script>
   <script src="prix.js" defer></script>
   <script src="app.js" defer></script>
 </head>
@@ -68,7 +69,12 @@
 
     <!-- Les prix du produit scanné : liste + formulaire d'ajout (rempli par prix.js). -->
     <section id="section-prix" class="section-prix" hidden>
-      <h2>Prix relevés dans Scanzo</h2>
+      <h2>Prix par enseigne</h2>
+      <!-- Un prix par enseigne, choisi par la logique de repli (repli.js). -->
+      <ul id="comparaison" class="liste-prix"></ul>
+      <p class="source">Prix publics : <a href="https://prices.openfoodfacts.org" target="_blank" rel="noopener">Open Prices</a> (licence ODbL)</p>
+
+      <h2 class="sous-titre">Tous les prix relevés dans Scanzo</h2>
       <p id="message-liste" class="message"></p>
       <ul id="liste-prix" class="liste-prix"></ul>
 
