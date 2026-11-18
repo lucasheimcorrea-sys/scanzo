@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Générer les icônes Scanzo</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Outil pour régénérer les icônes PNG de public/icones/ : ouvre cette page dans un navigateur,
+     puis lance genererToutes() dans la console (chaque valeur est une image PNG en base64). Dessine le « S » blanc penché sur carré bleu avec la vraie police Lilita One. -->
+<script>
+// mode "normal" : carré arrondi bleu + ombre nette, fond transparent (onglet, Android).
+// mode "plein"  : tout le carré rempli (iPhone arrondit lui-même les coins, et n'aime pas la transparence).
+// mode "maskable" : plein, et le S plus petit pour rester dans la « zone sûre » qu'Android peut rogner.
+function dessiner(taille, mode) {
+  const c = document.createElement("canvas");
+  c.width = c.height = taille;
+  const ctx = c.getContext("2d");
+  const u = taille / 64; // on dessine sur une grille de 64 et on agrandit
+  ctx.scale(u, u);
+  if (mode === "normal") {
+    ctx.fillStyle = "#101A3D";
+    ctx.beginPath(); ctx.roundRect(6, 6, 56, 56, 14); ctx.fill();          // ombre nette
+    ctx.fillStyle = "#2F5BFF";
+    ctx.beginPath(); ctx.roundRect(2, 2, 56, 56, 14); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#101A3D"; ctx.stroke();
+  } else {
+    ctx.fillStyle = "#2F5BFF";
+    ctx.fillRect(0, 0, 64, 64);
+  }
+  const centre = mode === "normal" ? 30 : 32;
+  const corps = mode === "maskable" ? 34 : mode === "plein" ? 42 : 42;
+  ctx.translate(centre, centre);
+  ctx.rotate(-4 * Math.PI / 180);
+  ctx.font = corps + "px 'Lilita One'";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  // ombre nette du S (comme le logo)
+  ctx.fillStyle = "#101A3D";
+  ctx.fillText("S", 2, 2 + corps * 0.05);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText("S", 0, corps * 0.05);
+  return c.toDataURL("image/png");
+}
+async function genererToutes() {
+  await document.fonts.load("42px 'Lilita One'");
+  return {
+    "icone-32.png": dessiner(32, "normal"),
+    "icone-192.png": dessiner(192, "normal"),
+    "icone-512.png": dessiner(512, "normal"),
+    "icone-maskable-512.png": dessiner(512, "maskable"),
+    "apple-touch-icon.png": dessiner(180, "plein"),
+  };
+}
+</script>
+</body>
+</html>

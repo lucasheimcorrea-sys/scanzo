@@ -1,17 +1,26 @@
+/* Identité visuelle Scanzo — piste B « Sticker » (choisie le 18.11.2026).
+   Toutes les couleurs sont ici, en variables : pour changer une teinte, on la change une seule fois. */
 :root {
-  --fond: #f6f7f5;
-  --texte: #1c1f1d;
-  --accent: #1f8a4c;
-  --gris: #5f6662;
-}
+  --bleu: #2f5bff;          /* couleur principale : boutons, logo */
+  --bleu-fonce: #1a3fd6;    /* bleu au survol / appui */
+  --rose: #ff5fa2;          /* accent : badge « en action » */
+  --rose-texte: #e0307f;    /* rose plus foncé, lisible en texte sur fond clair */
+  --fond: #eef2ff;          /* fond de l'app */
+  --encre: #101a3d;         /* texte, bords et ombres nettes */
+  --gris: #4a5578;          /* texte secondaire */
+  --blanc: #ffffff;
+  --carte: #ffffff;         /* fond des encadrés */
+  --bord-doux: #c9d2f2;     /* traits fins de séparation */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fond: #141615;
-    --texte: #eef1ef;
-    --accent: #3cbf73;
-    --gris: #a3aba7;
-  }
+  /* L'ombre « sticker » : décalée et nette (pas floue), couleur encre. */
+  --ombre: 4px 4px 0 var(--encre);
+
+  --police-titre: "Lilita One", "Arial Rounded MT Bold", sans-serif;
+  --police-texte: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* L'identité est pensée sur fond clair : on dit au navigateur de ne pas assombrir
+     les champs et menus en mode sombre. */
+  color-scheme: light;
 }
 
 * {
@@ -20,28 +29,76 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--police-texte);
   background: var(--fond);
-  color: var(--texte);
+  color: var(--encre);
+  /* Sur iPhone, empêche le texte de grossir tout seul quand on tourne l'écran. */
+  -webkit-text-size-adjust: 100%;
 }
 
 main {
   max-width: 480px;
   margin: 0 auto;
-  padding: 24px 16px;
+  /* env(safe-area-inset-…) : laisse de la place à l'encoche de l'iPhone quand l'app est installée. */
+  padding: max(24px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
   text-align: center;
 }
 
-h1 {
-  margin: 0 0 24px;
+h1,
+h2,
+h3 {
+  font-family: var(--police-titre);
+  font-weight: 400; /* Lilita One n'existe qu'en une graisse, déjà bien grasse */
+  letter-spacing: 0.01em;
 }
+
+a {
+  color: var(--bleu);
+}
+
+/* --- En-tête : logo sticker + slogan --- */
+
+.entete {
+  margin: 8px 0 28px;
+}
+
+/* Le logo : le mot « Scanzo » dans une étiquette bleue penchée. */
+.logo {
+  display: inline-block;
+  margin: 0;
+  padding: 6px 26px 10px;
+  font-family: var(--police-titre);
+  font-weight: 400;
+  font-size: 3.4rem;
+  line-height: 1;
+  color: var(--blanc);
+  background: var(--bleu);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--encre);
+  transform: rotate(-4deg);
+}
+
+.slogan {
+  margin: 22px 0 0;
+  font-family: var(--police-titre);
+  font-size: 1.3rem;
+  color: var(--encre);
+}
+
+.slogan span {
+  color: var(--rose-texte);
+}
+
+/* --- Caméra --- */
 
 .zone-camera {
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  border: 2px solid var(--encre);
+  border-radius: 20px;
   background: #000;
   aspect-ratio: 4 / 3;
+  box-shadow: var(--ombre);
 }
 
 /* Petit détail : sans cette ligne, l'attribut hidden ne cacherait pas la zone (à cause de position/display). */
@@ -63,9 +120,9 @@ video {
   right: 12%;
   top: 35%;
   bottom: 35%;
-  border: 3px solid var(--accent);
-  border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  border: 3px solid var(--rose);
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(16, 26, 61, 0.4);
 }
 
 .message {
@@ -83,14 +140,23 @@ video {
   letter-spacing: 0.05em;
 }
 
+/* --- Encadrés (fiche produit, compte, formulaire) : cartes blanches à bord encre --- */
+
+.fiche-produit,
+.compte,
+.form-prix {
+  background: var(--carte);
+  border: 2px solid var(--encre);
+  border-radius: 20px;
+  box-shadow: var(--ombre);
+}
+
 .fiche-produit {
   display: flex;
   gap: 16px;
   align-items: center;
   margin-top: 16px;
   padding: 16px;
-  border-radius: 16px;
-  background: rgba(127, 127, 127, 0.12);
   text-align: left;
 }
 
@@ -103,19 +169,21 @@ video {
   width: 96px;
   height: 96px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 12px;
   background: #fff;
   flex-shrink: 0;
 }
 
 .fiche-produit h2 {
   margin: 0 0 4px;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  line-height: 1.15;
 }
 
 .produit-marque {
   margin: 0 0 8px;
   color: var(--gris);
+  font-weight: 600;
 }
 
 .source {
@@ -128,37 +196,83 @@ video {
   color: inherit;
 }
 
+/* --- Boutons : bleu, bord encre 2 px, coins 16 px, ombre nette 4 px --- */
+
 button {
   display: block;
   width: 100%;
-  margin-top: 12px;
-  padding: 16px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 12px;
-  background: var(--accent);
-  color: #fff;
+  margin-top: 14px;
+  padding: 14px 16px;
+  min-height: 48px; /* assez grand pour un doigt */
+  font-family: var(--police-titre);
+  font-size: 1.2rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--blanc);
+  background: var(--bleu);
+  border: 2px solid var(--encre);
+  border-radius: 16px;
+  box-shadow: var(--ombre);
   cursor: pointer;
+  /* L'animation d'appui : rapide pour que ça paraisse réactif. */
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  button:hover:not(:disabled) {
+    background: var(--bleu-fonce);
+  }
+}
+
+/* À l'appui, le bouton « s'enfonce » : il glisse vers son ombre, qui rétrécit. */
+button:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--encre);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
 }
 
 button[hidden] {
   display: none;
 }
 
+/* Bouton secondaire : même forme, mais blanc. */
 button.secondaire {
-  background: transparent;
-  color: var(--texte);
-  border: 2px solid var(--gris);
+  background: var(--blanc);
+  color: var(--encre);
+}
+
+@media (hover: hover) {
+  button.secondaire:hover:not(:disabled) {
+    background: var(--fond);
+  }
+}
+
+button.petit {
+  display: inline-block;
+  width: auto;
+  min-height: 40px;
+  margin-top: 0;
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--encre);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 /* --- Compte (connexion par lien magique) --- */
 
 .compte {
   margin-bottom: 24px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: rgba(127, 127, 127, 0.12);
+  padding: 14px 16px;
   text-align: left;
   font-size: 0.95rem;
 }
@@ -170,13 +284,14 @@ button.secondaire {
 .form-connexion label {
   display: block;
   margin-bottom: 8px;
+  font-weight: 700;
 }
 
 /* Une ligne qui met côte à côte un texte/champ et un bouton, et passe à la ligne si c'est trop étroit. */
 .ligne {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   justify-content: space-between;
 }
@@ -191,22 +306,21 @@ select {
   padding: 10px 12px;
   /* 16px minimum : en dessous, Safari sur iPhone zoome tout seul sur le champ. */
   font-size: 16px;
-  border: 2px solid var(--gris);
-  border-radius: 10px;
-  background: var(--fond);
-  color: var(--texte);
+  font-family: var(--police-texte);
+  border: 2px solid var(--encre);
+  border-radius: 12px;
+  background: var(--blanc);
+  color: var(--encre);
 }
 
-button.petit {
-  display: inline-block;
-  width: auto;
-  margin-top: 0;
-  padding: 10px 14px;
-  font-size: 0.95rem;
+input:focus,
+select:focus {
+  outline: 3px solid var(--bleu);
+  outline-offset: 1px;
 }
 
-button:disabled {
-  opacity: 0.5;
+input[type="checkbox"] {
+  accent-color: var(--bleu);
 }
 
 .message-compte {
@@ -221,7 +335,7 @@ button:disabled {
 /* --- Prix d'un produit --- */
 
 .section-prix {
-  margin-top: 24px;
+  margin-top: 28px;
   text-align: left;
 }
 
@@ -232,7 +346,7 @@ button:disabled {
 }
 
 .section-prix h2 {
-  font-size: 1.1rem;
+  font-size: 1.35rem;
   margin: 0 0 8px;
 }
 
@@ -249,7 +363,7 @@ button:disabled {
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+  border-bottom: 2px solid var(--bord-doux);
 }
 
 .details-prix {
@@ -259,25 +373,25 @@ button:disabled {
 
 .actions-prix {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .form-prix {
-  margin-top: 16px;
+  margin-top: 20px;
   padding: 16px;
-  border-radius: 16px;
-  background: rgba(127, 127, 127, 0.12);
 }
 
 .form-prix h3 {
   margin: 0 0 12px;
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 .form-prix label {
   display: block;
   margin-bottom: 12px;
   font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .form-prix input:not([type="checkbox"]),
@@ -285,6 +399,7 @@ button:disabled {
   display: block;
   width: 100%;
   margin-top: 4px;
+  font-weight: 400;
 }
 
 .form-prix label.case {
@@ -306,20 +421,22 @@ button:disabled {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+  border-bottom: 2px solid var(--bord-doux);
 }
 
 .ligne-comparaison strong {
   white-space: nowrap;
-  font-size: 1.1rem;
+  font-family: var(--police-titre);
+  font-weight: 400;
+  font-size: 1.3rem;
 }
 
 .enseigne {
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .section-prix .sous-titre {
-  margin-top: 24px;
+  margin-top: 28px;
 }
 
 /* --- Étiquettes (âge du prix, en action, signalé faux) --- */
@@ -327,31 +444,34 @@ button:disabled {
 .badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
+  padding: 3px 10px;
+  border-radius: 10px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-/* L'âge : toujours affiché, bien lisible. */
+/* L'âge : toujours affiché, bien lisible mais discret. */
 .badge-age {
-  background: rgba(127, 127, 127, 0.22);
-  color: var(--texte);
+  background: var(--fond);
+  color: var(--encre);
+  border: 1.5px solid var(--bord-doux);
 }
 
+/* « En action » : le sticker rose légèrement penché, comme sur la maquette. */
 .badge-action {
-  background: #f2c94c;
-  color: #3a2c00;
+  background: var(--rose);
+  color: var(--encre);
+  transform: rotate(3deg);
 }
 
 .badge-alerte {
-  background: #e5484d;
-  color: #fff;
+  background: var(--encre);
+  color: var(--blanc);
 }
