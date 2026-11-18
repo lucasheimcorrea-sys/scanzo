@@ -10,11 +10,37 @@
        Si le navigateur l'a déjà (Chrome Android), il ne fait rien.
        Version figée (3.2.3) pour que rien ne change sans qu'on le décide. -->
   <script src="https://cdn.jsdelivr.net/npm/barcode-detector@3.2.3/dist/iife/polyfill.js"></script>
+
+  <!-- supabase-js : la bibliothèque officielle pour parler à notre base Supabase (connexion, lecture, écriture).
+       Version figée (2.118.0), pour la même raison que le polyfill. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+
+  <!-- Nos fichiers, dans l'ordre : "defer" les lance après le chargement de la page, en gardant cet ordre. -->
+  <script src="supabase.js" defer></script>
+  <script src="connexion.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
   <main>
     <h1>Scanzo</h1>
+
+    <!-- Le compte : soit le formulaire de connexion, soit « connecté en tant que… ». -->
+    <section id="compte" class="compte">
+      <div id="compte-deconnecte">
+        <form id="form-connexion" class="form-connexion">
+          <label for="champ-email">Connecte-toi pour ajouter des prix :</label>
+          <div class="ligne">
+            <input id="champ-email" type="email" placeholder="ton@email.ch" autocomplete="email" required>
+            <button id="bouton-lien" type="submit" class="petit">Recevoir un lien</button>
+          </div>
+        </form>
+      </div>
+      <div id="compte-connecte" class="ligne" hidden>
+        <span>Connecté : <strong id="email-connecte"></strong></span>
+        <button id="bouton-deconnexion" type="button" class="petit secondaire">Se déconnecter</button>
+      </div>
+      <p id="message-compte" class="message-compte" aria-live="polite"></p>
+    </section>
 
     <!-- La vidéo de la caméra. "playsinline" et "muted" sont obligatoires sur iPhone,
          sinon la vidéo s'ouvre en plein écran ou ne démarre pas. -->
