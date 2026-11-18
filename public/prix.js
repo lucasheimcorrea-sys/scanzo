@@ -22,6 +22,7 @@ const champAction = document.getElementById("champ-action");
 const boutonEnregistrerPrix = document.getElementById("bouton-enregistrer-prix");
 const boutonAnnulerCorrection = document.getElementById("bouton-annuler-correction");
 const messagePrix = document.getElementById("message-prix");
+const listeComparaison = document.getElementById("comparaison");
 
 // Les noms affichés des enseignes (dans la base, elles sont en minuscules).
 const NOMS_ENSEIGNES = {
@@ -75,7 +76,21 @@ function lireDerniereFiliale() {
   try { return localStorage.getItem("scanzo-derniere-filiale"); } catch (e) { return null; }
 }
 function garderDerniereFiliale(id) {
-  try { localStorage.setItem("scanzo-derniere-filiale", String(id)); } catch (e) { /* tant pis */ }
+  try {
+    localStorage.setItem("scanzo-derniere-filiale", String(id));
+    // On retient aussi « ta » filiale pour chaque enseigne : c'est le niveau 1 du repli (repli.js).
+    const filiale = filiales.find((f) => String(f.id) === String(id));
+    if (filiale) {
+      const mesFiliales = lireMesFiliales();
+      mesFiliales[filiale.enseigne] = filiale.id;
+      localStorage.setItem("scanzo-mes-filiales", JSON.stringify(mesFiliales));
+    }
+  } catch (e) { /* tant pis */ }
+}
+
+// { migros: 12, coop: 7 } = l'id de ta filiale habituelle pour chaque enseigne.
+function lireMesFiliales() {
+  try { return JSON.parse(localStorage.getItem("scanzo-mes-filiales")) || {}; } catch (e) { return {}; }
 }
 
 // --- Les filiales (chargées une seule fois) ---
@@ -188,24 +203,118 @@ async function chargerPrix() {
   const ean = eanActuel;
   messageListe.textContent = "Chargement des prix…";
   listePrix.textContent = "";
+  listeComparaison.textContent = "";
 
+  // Les deux sources en même temps (Promise.all) : on n'attend pas l'une pour demander l'autre.
   // « magasins(...) » : Supabase suit le lien prix.magasin_id → magasins.id et renvoie la filiale avec le prix.
-  const { data, error } = await sb
-    .from("prix")
-    .select("id, prix, date_releve, en_action, utilisateur, magasin_id, magasins(id, enseigne, nom, ville, osm_id)")
-    .eq("ean", ean)
-    .order("date_releve", { ascending: false })
-    .order("created_at", { ascending: false });
+  const [reponseScanzo, prixOpen] = await Promise.all([
+    sb
+      .from("prix")
+      .select("id, prix, date_releve, en_action, utilisateur, magasin_id, magasins(id, enseigne, nom, ville, osm_id)")
+      .eq("ean", ean)
+      .order("date_releve", { ascending: false })
+      .order("created_at", { ascending: false }),
+    chargerOpenPrices(ean),
+  ]);
 
   if (ean !== eanActuel) return; // on a scanné autre chose entre-temps
 
+  const { data, error } = reponseScanzo;
   if (error) {
     messageListe.textContent = "Impossible de charger les prix (" + error.message + ").";
     return;
   }
 
+  afficherComparaison(data, prixOpen);
   messageListe.textContent = data.length === 0 ? "Aucun prix relevé dans Scanzo pour ce produit." : "";
   afficherListePrix(data);
+}
+
+// --- Open Prices : prix publics (lecture seule, sans compte) ---
+
+// Renvoie les prix suisses en CHF du produit, au format attendu par repli.js. [] en cas de souci :
+// Open Prices est un bonus, son absence ne doit jamais bloquer l'affichage des prix Scanzo.
+async function chargerOpenPrices(ean) {
+  const adresse =
+    "https://prices.openfoodfacts.org/api/v1/prices?product_code=" + encodeURIComponent(ean) +
+    "&currency=CHF&order_by=-date&size=100";
+  try {
+    const reponse = await fetch(adresse);
+    if (!reponse.ok) return [];
+    const donnees = await reponse.json();
+    return donnees.items
+      .filter((p) => p.location && p.location.osm_address_country_code === "CH" && p.date)
+      .map((p) => ({
+        prix: p.price,
+        date: p.date,
+        enAction: p.price_is_discounted === true,
+        enseigne: enseigneDepuisOsm(p.location.osm_brand),
+        osmId: p.location.osm_id,
+        lieu: (p.location.osm_name || "Magasin") + (p.location.osm_address_city ? " (" + p.location.osm_address_city + ")" : ""),
+      }))
+      .filter((p) => p.enseigne !== null);
+  } catch (erreur) {
+    console.warn("Open Prices injoignable :", erreur);
+    return [];
+  }
+}
+
+// --- La comparaison : un prix par enseigne, choisi par la logique de repli (repli.js) ---
+
+function afficherComparaison(lignesScanzo, prixOpen) {
+  listeComparaison.textContent = "";
+  const maintenant = new Date();
+  const mesFiliales = lireMesFiliales();
+
+  // On met les prix Scanzo au même format que ceux d'Open Prices.
+  const prixScanzo = lignesScanzo.map((l) => ({
+    prix: l.prix,
+    date: l.date_releve,
+    enAction: l.en_action,
+    magasin: l.magasins,
+  }));
+
+  for (const enseigne of ENSEIGNES) {
+    const maFiliale = filiales.find((f) => f.id === mesFiliales[enseigne]) || null;
+    const choix = choisirPrix(enseigne, prixScanzo, prixOpen, maFiliale, maintenant);
+
+    const element = document.createElement("li");
+    element.className = "ligne-comparaison";
+
+    const nom = document.createElement("span");
+    nom.className = "enseigne";
+    nom.textContent = NOMS_ENSEIGNES[enseigne];
+
+    const montant = document.createElement("strong");
+    const origine = document.createElement("div");
+    origine.className = "details-prix";
+
+    if (choix) {
+      const p = choix.prix;
+      montant.textContent = formaterPrix(p.prix) + " CHF";
+      origine.textContent = texteOrigine(choix) + " · relevé " + texteAge(p.date, maintenant) + (p.enAction ? " · en action" : "");
+    } else {
+      montant.textContent = "—";
+      origine.textContent = "pas encore de prix";
+    }
+
+    const gauche = document.createElement("div");
+    gauche.append(nom, origine);
+    element.append(gauche, montant);
+    listeComparaison.appendChild(element);
+  }
+}
+
+// D'où vient le prix affiché, en clair.
+function texteOrigine(choix) {
+  switch (choix.niveau) {
+    case "ma-filiale":
+      return nomFiliale(choix.prix.magasin) + " · ta filiale";
+    case "autre-filiale":
+      return nomFiliale(choix.prix.magasin);
+    default:
+      return "Open Prices : " + choix.prix.lieu;
+  }
 }
 
 function afficherListePrix(lignes) {
