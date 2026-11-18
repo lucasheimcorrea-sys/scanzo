@@ -37,6 +37,14 @@ Pas de serveur à ce stade.
 - [ ] Afficher nom, marque et photo depuis Open Food Facts
 - [ ] Message clair si le produit est inconnu
 
+## Identité visuelle (piste B « Sticker », 18.11.2026)
+Détail complet : `01_Concept/nom-et-identite.md` dans le dossier iCloud.
+- Couleurs et polices : variables en haut de `public/style.css` (`--bleu`, `--rose`, `--encre`…). Utilise-les, n'écris pas de couleur en dur.
+- Polices : Lilita One (titres, boutons, prix) + Nunito (texte), via Google Fonts dans `index.html`.
+- Boutons : bleu, bord 2 px encre, coins 16 px, ombre nette 4 px. Badge « en action » rose penché.
+- Pas de mode sombre (l'identité est pensée sur fond clair).
+- Icônes de l'app dans `public/icones/` ; pour les refaire : `outils/generer-icones.html`.
+
 ## Façon de travailler
 - Une fonctionnalité = une **branche** (`feature/scan-camera`, etc.), puis une pull request vers `main`. Netlify crée une adresse de test pour chaque PR : Lucas teste sur son téléphone avant de fusionner.
 - Messages de commit courts, en français, qui disent ce qui change.
