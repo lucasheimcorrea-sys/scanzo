@@ -24,7 +24,7 @@ Lucas, 19 ans, étudiant en économie (UniNE), il apprend le développement avec
   Lis-les quand tu as besoin du contexte. Ne les modifie pas : leur mise à jour se fait dans le projet Claude « Scanzo ».
 
 ## Décisions déjà prises
-- Front : **PWA HTML/CSS/JS sans build**, hébergée sur **Netlify** (site `testescanzo`, dossier `public/`), déployée automatiquement depuis ce repo GitHub.
+- Front : **PWA HTML/CSS/JS sans build**, hébergée sur **GitHub Pages** (dossier `public/`), déployée automatiquement à chaque push sur `main` par `.github/workflows/pages.yml` (depuis le 19.11.2026 ; avant : Netlify). Le repo est public. Le site est dans un sous-dossier (`/scanzo/`) : toujours utiliser des chemins **relatifs** (`icones/…`, `./`), jamais `/…`.
 - Scan : API standard `BarcodeDetector` + polyfill `barcode-detector` (ZXing en WebAssembly, version figée), car Safari iPhone n'a pas l'API.
 - Produits : **Open Food Facts** (API v2, sans clé). Un connecté peut ajouter un produit inconnu.
 - Backend : **Supabase** (projet `scanzo`, eu-west-1). Tables produits, magasins (1 ligne par filiale), prix, groupes d'équivalents, signalements. RLS : tout le monde lit, les connectés ajoutent prix et produits, chacun corrige/supprime seulement ses prix. Historique SQL dans `supabase/migrations/`.
@@ -37,7 +37,7 @@ Lucas, 19 ans, étudiant en économie (UniNE), il apprend le développement avec
 Ce qui n'est pas listé ici n'est **pas décidé** : propose, explique, et laisse Lucas choisir avant de partir dessus.
 
 ## Où on en est (18.11.2026)
-Étapes 0 à 3 et 7 (identité visuelle) faites ; 4 et 6 presque finies. En ligne sur https://testescanzo.netlify.app.
+Étapes 0 à 3 et 7 (identité visuelle) faites ; 4 et 6 presque finies. En ligne sur https://lucasheimcorrea-sys.github.io/scanzo/.
 - Reste à faire : saisie de vrais prix par Lucas, test avec un ami (il faudra un service d'email SMTP : sans lui, Supabase n'envoie le lien qu'aux membres de l'équipe du projet), photo de l'étiquette (option).
 - Questions encore ouvertes (âge max d'un prix, ordre Open Prices, prix signalé faux à cacher, service worker…) : `06_Suivi/questions-ouvertes.md` dans le dossier iCloud. Ne pas les trancher seul.
 
@@ -50,13 +50,13 @@ Détail complet : `01_Concept/nom-et-identite.md` dans le dossier iCloud.
 - Icônes de l'app dans `public/icones/` ; pour les refaire : `outils/generer-icones.html`.
 
 ## Façon de travailler
-- Une fonctionnalité = une **branche** (`feature/scan-camera`, etc.), puis une pull request vers `main`. Netlify crée une adresse de test pour chaque PR.
-- **PR en autonomie** (accord de Lucas, 18.11.2026) : Claude ouvre et fusionne les PR sans demander, après avoir vérifié lui-même (aperçu local au format iPhone, `node --test tests/*.test.js`, déploiement Netlify de la PR réussi). Ensuite, il donne à Lucas le lien et ce qu'il faut tester sur iPhone.
+- Une fonctionnalité = une **branche** (`feature/scan-camera`, etc.), puis une pull request vers `main`. GitHub Pages n'a pas d'adresse de test par PR : on teste en local avant de fusionner.
+- **PR en autonomie** (accord de Lucas, 18.11.2026) : Claude ouvre et fusionne les PR sans demander, après avoir vérifié lui-même (aperçu local au format iPhone, `node --test tests/*.test.js`, puis, après fusion, déploiement GitHub Actions « Déploiement GitHub Pages » réussi). Ensuite, il donne à Lucas le lien et ce qu'il faut tester sur iPhone.
 - Messages de commit courts, en français, qui disent ce qui change.
 - Garde le code simple et lisible pour un débutant. Pas de dépendance ajoutée sans dire pourquoi.
 - Noms de fichiers : minuscules-avec-tirets, sans accent ni espace.
 
 ## Sécurité (non négociable)
-- **Aucune clé, aucun mot de passe dans le code ni dans un commit.** Les secrets vont dans `.env` (ignoré par git) et dans les variables d'environnement Netlify.
+- **Aucune clé, aucun mot de passe dans le code ni dans un commit.** Les secrets vont dans `.env` (ignoré par git) et, si un jour il en faut côté serveur, dans les secrets GitHub (Settings → Secrets). Repo public : tout ce qui est commité est lisible par tous, historique compris.
 - La clé Supabase `anon` peut aller dans le front (protégée par le Row Level Security). La clé `service_role` **jamais**.
 - Avant chaque commit, vérifie qu'aucun secret n'est inclus.
